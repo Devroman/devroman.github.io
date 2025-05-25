@@ -116,6 +116,14 @@ let jumping = false;
 let jumpCount = 0;
 let maxJumps = 1;
 let spawnRate = 0.018;
+let spawnIncrement = 0.004;
+let spawnCap = 0.06;
+let difficulty = 'hard';
+const difficultySettings = {
+  easy: { label: 'Пощадите', spawnMod: 0.5 },
+  normal: { label: 'Нормас', spawnMod: 0.75 },
+  hard: { label: 'Хардкор', spawnMod: 1 }
+};
 let tick = 0;
 let playerWidth = 0;
 let minSpawnTicks = 0;
@@ -203,7 +211,10 @@ function resetGame() {
   jumping = false;
   jumpCount = 0;
   maxJumps = currentLevel >= 2 ? 2 : 1;
-  spawnRate = lvl.spawn;
+  const mod = difficultySettings[difficulty].spawnMod;
+  spawnRate = lvl.spawn * mod;
+  spawnIncrement = 0.004 * mod;
+  spawnCap = 0.06 * mod;
   tick = 0;
   playerWidth = player.getBoundingClientRect().width;
   minSpawnTicks = Math.ceil(playerWidth * 3 / itemSpeed);
@@ -253,8 +264,8 @@ function gameLoop() {
     lastIssueTick = tick;
   }
   if (Math.random() < spawnRate) spawnItem();
-  if (tick % 300 === 0 && spawnRate < 0.06) {
-    spawnRate += 0.004;
+  if (tick % 300 === 0 && spawnRate < spawnCap) {
+    spawnRate += spawnIncrement;
     itemSpeed += 0.5;
     moneyValue += 50;
     minSpawnTicks = Math.ceil(playerWidth * 3 / itemSpeed);
@@ -384,6 +395,21 @@ function showInitialOverlay() {
   document.addEventListener('touchstart', startPreparation, { once: true });
 }
 
+function showDifficultySelection() {
+  overlay.innerHTML =
+    '<h2>Выберите уровень сложности</h2>' +
+    '<div><button data-diff="easy">Пощадите</button></div>' +
+    '<div><button data-diff="normal">Нормас</button></div>' +
+    '<div><button data-diff="hard">Хардкор</button></div>';
+  overlay.style.display = 'flex';
+  overlay.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      difficulty = btn.dataset.diff;
+      showInitialOverlay();
+    }, { once: true });
+  });
+}
+
 function startPreparation() {
   document.removeEventListener('keydown', startPreparation);
   document.removeEventListener('touchstart', startPreparation);
@@ -414,14 +440,14 @@ function restartAll() {
   currentLevel = 0;
   upgrades = { team: 0, gorbunov: 0, delegation: 0 };
   chosenUpgrades = [];
-  showInitialOverlay();
+  showDifficultySelection();
 }
 
 function restartLevel() {
   startLevel();
 }
 
-showInitialOverlay();
+showDifficultySelection();
 </script>
 </body>
 </html>
