@@ -348,8 +348,8 @@ function completeLevel() {
   } else {
     trackGoal('complete_game');
     overlay.innerHTML =
-      '<h2>Вы победили!</h2>' +
-      '<p>Теперь вы очень ценитесь на рынке!</p>' +
+      '<h2>Вы победили, но какой ценой...</h2>' +
+      '<p>Лучше бы вы это время уделили учебе или работе 🫨</p>' +
       '<button id="restart">Играть снова</button>';
     overlay.style.display = 'flex';
     document.getElementById('restart').addEventListener('click', restartAll, { once: true });
