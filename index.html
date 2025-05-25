@@ -70,6 +70,9 @@
     font-family: inherit;
     cursor: pointer;
   }
+  .skill-btn {
+    margin: 6px 0;
+  }
 
   @media (max-width: 600px) {
     #game-container { font-size: 3rem; }
@@ -121,9 +124,9 @@ let goal = 10000;
 let itemSpeed = 3;
 const levels = [
   { goal: 10000, grade: 'Junior', multiplier: 1, spawn: 0.018 },
-  { goal: 100000, grade: 'Middle', multiplier: 2, spawn: 0.022 },
-  { goal: 1000000, grade: 'Senior', multiplier: 3, spawn: 0.026 },
-  { goal: 100000000, grade: 'CPO', multiplier: 4, spawn: 0.03 }
+  { goal: 100000, grade: 'Middle', multiplier: 10, spawn: 0.022 },
+  { goal: 1000000, grade: 'Senior', multiplier: 100, spawn: 0.026 },
+  { goal: 100000000, grade: 'CPO', multiplier: 1000, spawn: 0.03 }
 ];
 let currentLevel = 0;
 let upgrades = { team: 0, gorbunov: 0, delegation: 0 };
@@ -387,9 +390,9 @@ function showLevelIntro() {
   overlay.innerHTML =
     `<h2>${lvl.grade} — цель $${lvl.goal}</h2>` +
     '<p>Выберите навык для прокачки:</p>' +
-    '<button data-skill="team">Прокачать команду</button>' +
-    '<button data-skill="gorbunov">Курсы Горбунова</button>' +
-    '<button data-skill="delegation">Делегирование</button>';
+    '<div><p>Багов будет меньше</p><button class="skill-btn" data-skill="team">Прокачать команду</button></div>' +
+    '<div><p>Попадание в ожидание пользователя лучше</p><button class="skill-btn" data-skill="gorbunov">Курсы Горбунова</button></div>' +
+    '<div><p>Созвонов станет меньше</p><button class="skill-btn" data-skill="delegation">Делегирование</button></div>';
   overlay.style.display = 'flex';
   overlay.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
