@@ -8,3 +8,5 @@ levels with goals from $10 000 up to $100 000 000. After each goal is reached
 gets promoted from **Junior** to **CPO**.
 
 The game is written in plain HTML, CSS and JavaScript using emoji for all graphics.
+
+[demo here](https://devroman.github.io/)
