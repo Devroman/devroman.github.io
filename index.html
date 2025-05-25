@@ -1,357 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <title>Which Friends Character Are You?</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roman Sentiurev - Product Manager</title>
+  <meta name="description" content="Resume of Roman Sentiurev, Senior Product Manager from Almaty, Kazakhstan.">
+  <meta name="keywords" content="Roman Sentiurev, Product Manager, Resume, CV">
+  <meta property="og:title" content="Roman Sentiurev - Product Manager Resume">
+  <meta property="og:description" content="Senior Product Manager with over 12 years of experience.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://devroman.com">
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root {
-      --primary: #ff9800;
-      --secondary: #6c63ff;
-      --bg: #fffbe7;
-      --accent: #ff4f81;
-      --text: #2e2e2e;
-      --card-bg: #fff;
-      --btn-bg: #6c63ff;
-      --btn-hover: #ff9800;
-      --shadow: 0 8px 24px rgba(108,99,255,0.08), 0 1.5px 4px rgba(0,0,0,0.08);
-    }
-    body {
-      background: var(--bg);
-      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
-      color: var(--text);
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      flex-direction: column;
-    }
-    .container {
-      background: var(--card-bg);
-      max-width: 430px;
-      margin: 40px auto;
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      padding: 32px 28px 28px 28px;
-      text-align: center;
-    }
-    h1 {
-      background: linear-gradient(90deg, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-size: 2.1rem;
-      margin-bottom: 18px;
-      letter-spacing: 1px;
-    }
-    .question {
-      font-size: 1.18rem;
-      margin-bottom: 20px;
-      font-weight: 500;
-    }
-    .options {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 12px;
-    }
-    .option-btn {
-      background: var(--btn-bg);
-      color: #fff;
-      border: none;
-      padding: 14px 8px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.08s;
-      box-shadow: 0 2px 8px rgba(108,99,255,0.10);
-    }
-    .option-btn:hover, .option-btn.selected {
-      background: var(--btn-hover);
-      transform: translateY(-2px) scale(1.03);
-    }
-    .progress {
-      height: 8px;
-      background: #ececec;
-      border-radius: 8px;
-      margin: 20px 0 8px 0;
-      overflow: hidden;
-    }
-    .progress-bar {
-      background: linear-gradient(90deg, var(--secondary), var(--primary));
-      height: 100%;
-      width: 0;
-      transition: width 0.3s;
-    }
-    .btn {
-      margin-top: 18px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 12px 22px;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
-      box-shadow: 0 2px 8px rgba(255,79,129,0.10);
-    }
-    .btn:hover {
-      background: var(--primary);
-    }
-    .result {
-      font-size: 1.3rem;
-      margin: 18px 0 8px 0;
-      font-weight: 600;
-    }
-    .character {
-      font-size: 1.8rem;
-      margin: 4px 0;
-      font-weight: 700;
-    }
-    .desc {
-      font-size: 1.02rem;
-      color: #555;
-      margin-bottom: 10px;
-    }
-    .avatar {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      margin: 10px auto 18px auto;
-      object-fit: cover;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.09);
-      border: 3px solid var(--primary);
-      display: block;
-    }
-    @media (max-width: 500px) {
-      .container { padding: 20px 6px 20px 6px; }
-      h1 { font-size: 1.3rem; }
-      .question { font-size: 1rem; }
-    }
+    html { scroll-behavior: smooth; }
   </style>
 </head>
-<body>
-  <div class="container" id="quiz-container">
-    <h1>Which <span style="font-style: italic;">Friends</span> Character Are You?</h1>
-    <div class="progress">
-      <div class="progress-bar" id="progress-bar"></div>
-    </div>
-    <div id="quiz-content"></div>
-    <button class="btn" id="next-btn" style="display:none;">Next</button>
-  </div>
-  <script>
-    // Quiz data: Each option maps to (character, points)
-    const questions = [
-      {
-        q: "What's your favorite way to spend a Friday night?",
-        options: [
-          { text: "Hanging out at a coffee shop", character: "Rachel" },
-          { text: "Watching TV at home", character: "Chandler" },
-          { text: "Going on a date", character: "Joey" },
-          { text: "Planning something fun with friends", character: "Monica" }
-        ]
-      },
-      {
-        q: "Pick a pet:",
-        options: [
-          { text: "A dinosaur (well, a toy one!)", character: "Ross" },
-          { text: "A chick or a duck", character: "Joey" },
-          { text: "A fancy purebred cat", character: "Rachel" },
-          { text: "A regular dog", character: "Monica" }
-        ]
-      },
-      {
-        q: "What describes your fashion sense?",
-        options: [
-          { text: "Trendy and stylish", character: "Rachel" },
-          { text: "Comfy and casual", character: "Chandler" },
-          { text: "Sporty and practical", character: "Monica" },
-          { text: "Classic and a bit nerdy", character: "Ross" }
-        ]
-      },
-      {
-        q: "Your friends would say you're...",
-        options: [
-          { text: "The funny one", character: "Chandler" },
-          { text: "The caring one", character: "Monica" },
-          { text: "The quirky one", character: "Phoebe" },
-          { text: "The charming one", character: "Joey" }
-        ]
-      },
-      {
-        q: "What's your dream job?",
-        options: [
-          { text: "Fashion executive", character: "Rachel" },
-          { text: "Chef", character: "Monica" },
-          { text: "Actor", character: "Joey" },
-          { text: "Paleontologist", character: "Ross" }
-        ]
-      },
-      {
-        q: "Pick a catchphrase:",
-        options: [
-          { text: "\"How you doin'?\"", character: "Joey" },
-          { text: "\"We were on a break!\"", character: "Ross" },
-          { text: "\"Oh. My. God.\"", character: "Janice" },
-          { text: "\"Could I BE any more...\"", character: "Chandler" }
-        ]
-      },
-      {
-        q: "Choose a coffee:",
-        options: [
-          { text: "Cappuccino", character: "Rachel" },
-          { text: "Black coffee", character: "Ross" },
-          { text: "Espresso", character: "Joey" },
-          { text: "Herbal tea", character: "Phoebe" }
-        ]
-      },
-      {
-        q: "How do you handle stress?",
-        options: [
-          { text: "Clean and organize everything", character: "Monica" },
-          { text: "Make a joke", character: "Chandler" },
-          { text: "Write a song", character: "Phoebe" },
-          { text: "Eat pizza", character: "Joey" }
-        ]
-      },
-      {
-        q: "What's most important to you?",
-        options: [
-          { text: "My friends", character: "Monica" },
-          { text: "Success", character: "Rachel" },
-          { text: "Love", character: "Ross" },
-          { text: "Freedom", character: "Phoebe" }
-        ]
-      },
-      {
-        q: "Which flaw do you most relate to?",
-        options: [
-          { text: "I can be a neat freak", character: "Monica" },
-          { text: "I get jealous sometimes", character: "Ross" },
-          { text: "I'm a bit too honest", character: "Phoebe" },
-          { text: "I'm a commitment-phobe", character: "Chandler" }
-        ]
-      }
-    ];
+<body class="bg-white text-gray-900 font-sans antialiased leading-relaxed">
+  <header class="sticky top-0 bg-white shadow">
+    <nav class="container mx-auto flex justify-between items-center py-4 px-4">
+      <div class="text-xl font-bold">Roman Sentiurev</div>
+      <ul class="flex space-x-4">
+        <li><a href="#about" class="hover:text-blue-600">About</a></li>
+        <li><a href="#experience" class="hover:text-blue-600">Experience</a></li>
+        <li><a href="#skills" class="hover:text-blue-600">Skills</a></li>
+        <li><a href="#contact" class="hover:text-blue-600">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    // Result descriptions and avatars
-    const results = {
-      Rachel: {
-        name: "Rachel Green",
-        desc: "You're stylish, ambitious, and always growing. You value friendship and know how to have fun.",
-        avatar: "https://static.wikia.nocookie.net/friends/images/6/6c/Rachel_Green.png"
-      },
-      Monica: {
-        name: "Monica Geller",
-        desc: "You're caring, competitive, and fiercely loyal. You keep your friends together and love making things perfect.",
-        avatar: "https://static.wikia.nocookie.net/friends/images/8/89/Monica_Geller.png"
-      },
-      Ross: {
-        name: "Ross Geller",
-        desc: "You're smart, passionate, and a little quirky. You love to learn and care deeply about your loved ones.",
-        avatar: "https://static.wikia.nocookie.net/friends/images/4/4d/Ross_Geller.png"
-      },
-      Chandler: {
-        name: "Chandler Bing",
-        desc: "You're witty, sarcastic, and secretly sweet. You use humor to get through tough times and always support your friends.",
-        avatar: "https://static.wikia.nocookie.net/friends/images/1/15/Chandler_Bing.png"
-      },
-      Joey: {
-        name: "Joey Tribbiani",
-        desc: "You're fun-loving, loyal, and always up for an adventure. People love your charm and big heart.",
-        avatar: "https://static.wikia.nocookie.net/friends/images/e/e3/Joey_Tribbiani.png"
-      },
-      Phoebe: {
-        name: "Phoebe Buffay",
-        desc: "You're creative, unique, and free-spirited. You march to your own beat and inspire everyone around you.",
-        avatar: "https://static.wikia.nocookie.net/friends/images/2/2f/Phoebe_Buffay.png"
-      },
-      Janice: {
-        name: "Janice Litman",
-        desc: "Oh. My. God. You always make an impression! You’re bold, memorable, and never afraid to speak your mind.",
-        avatar: "https://static.wikia.nocookie.net/friends/images/6/6c/Janice_Litman-Goralnik.png"
-      }
-    };
+  <main class="container mx-auto px-4">
+    <section id="about" class="py-8">
+      <h1 class="text-3xl font-bold mb-4">About</h1>
+      <p>Senior Product Manager with 12+ years of experience merging deep technical expertise with strategic product leadership. Proven ability to launch successful products, scale user engagement, and drive significant revenue growth.</p>
+    </section>
 
-    let currentQuestion = 0;
-    let answers = [];
+    <section id="experience" class="py-8">
+      <h2 class="text-2xl font-bold mb-4">Experience</h2>
+      <article class="mb-6">
+        <h3 class="text-xl font-semibold">Product manager – ATI.SU <span class="text-gray-600">(Aug 2020 - now)</span></h3>
+        <p class="mt-2">ATI.SU – freight exchange and the largest ecosystem of services for transport logistics in CIS.</p>
+        <ul class="list-disc list-inside mt-2 space-y-1">
+          <li>Introduced instant verification for legal entities and individuals, resulting in an additional 70M RUB annual revenue.</li>
+          <li>Redesigned user onboarding through customer research and A/B testing, doubling registration conversion and tripling payment conversion.</li>
+          <li>Led development of a Warehouse Management System adopted by 200+ warehouses.</li>
+          <li>Managed over 50 team members across three cross-functional teams.</li>
+          <li>Expanded billing capabilities internationally, boosting revenue by 20%.</li>
+          <li>Implemented 200+ A/B tests and optimized planning processes.</li>
+          <li>In 2024 increased company revenue by 27% through improved user experience.</li>
+          <li>Initiated AI transformation with LLMs and RAG solutions.</li>
+          <li>Transformed an underperforming team into a top-performing unit.</li>
+        </ul>
+      </article>
+      <article class="mb-6">
+        <h3 class="text-xl font-semibold">External Consultant – Product Star <span class="text-gray-600">(Nov 2021 - Present)</span></h3>
+        <ul class="list-disc list-inside mt-2 space-y-1">
+          <li>Mentored product teams from major enterprises (VTB, PSB, Avito).</li>
+          <li>Developed growth strategies and provided coaching leading to improved metrics.</li>
+        </ul>
+      </article>
+      <article class="mb-6">
+        <h3 class="text-xl font-semibold">Developer &amp; Teamlead – Sindbad.ru / ATI.SU <span class="text-gray-600">(Feb 2012 - Jul 2020)</span></h3>
+        <ul class="list-disc list-inside mt-2 space-y-1">
+          <li>Progressed from developer to team lead, managing key projects.</li>
+          <li>Optimized data extraction processes and facilitated collaboration between technical and business teams.</li>
+        </ul>
+      </article>
+    </section>
 
-    function renderQuestion() {
-      const q = questions[currentQuestion];
-      document.getElementById('progress-bar').style.width = ((currentQuestion) / questions.length * 100) + "%";
-      let html = `
-        <div class="question">${q.q}</div>
-        <div class="options" id="options">
-      `;
-      q.options.forEach((opt, i) => {
-        html += `<button class="option-btn" onclick="selectOption(${i})">${opt.text}</button>`;
-      });
-      html += '</div>';
-      document.getElementById('quiz-content').innerHTML = html;
-      document.getElementById('next-btn').style.display = 'none';
-    }
+    <section id="skills" class="py-8">
+      <h2 class="text-2xl font-bold mb-4">Skills</h2>
+      <h3 class="text-xl font-semibold">Product Management</h3>
+      <p>Agile, Scrum, Kanban methodologies, OKR frameworks, Growth strategies, Unit economics, JTBD framework, A/B testing, UX design, Customer development.</p>
+      <h3 class="text-xl font-semibold mt-4">Technical Expertise</h3>
+      <p>Python, JavaScript, Docker, Grafana, Gitlab-CI, Ansible, LLM deployment, RAG.</p>
+      <h3 class="text-xl font-semibold mt-4">Financial Analysis</h3>
+      <p>Budget planning, revenue growth strategies, financial modeling, unit economics analysis.</p>
+      <h3 class="text-xl font-semibold mt-4">Fintech</h3>
+      <p>International billing systems, payment gateway integration, multi-currency transactions.</p>
+    </section>
 
-    function selectOption(optIdx) {
-      // Deselect any previous
-      document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
-      // Select current
-      document.querySelectorAll('.option-btn')[optIdx].classList.add('selected');
-      answers[currentQuestion] = optIdx;
-      document.getElementById('next-btn').style.display = 'inline-block';
-    }
+    <section id="contact" class="py-8">
+      <h2 class="text-2xl font-bold mb-4">Contact</h2>
+      <ul class="space-y-1">
+        <li>Email: <a href="mailto:mailbox@devroman.com" class="text-blue-600 hover:underline">mailbox@devroman.com</a></li>
+        <li>LinkedIn: <a href="https://www.linkedin.com/in/devroman/" class="text-blue-600 hover:underline">linkedin.com/in/devroman</a></li>
+        <li>Phone: <a href="tel:+77474875942" class="text-blue-600 hover:underline">+7 (747) 487 5942</a></li>
+        <li>Telegram: <a href="https://t.me/devroman" class="text-blue-600 hover:underline">@devroman</a></li>
+        <li>Almaty, Kazakhstan</li>
+      </ul>
+    </section>
+  </main>
 
-    document.getElementById('next-btn').onclick = () => {
-      if (typeof answers[currentQuestion] === 'undefined') return;
-      currentQuestion++;
-      if (currentQuestion < questions.length) {
-        renderQuestion();
-      } else {
-        showResult();
-      }
-    };
+  <footer class="bg-gray-100 text-center py-4">
+    <p>&copy; 2024 Roman Sentiurev</p>
+  </footer>
 
-    function showResult() {
-      // Calculate scores
-      const scoreMap = {};
-      questions.forEach((q, qIdx) => {
-        const opt = q.options[answers[qIdx]];
-        if (!scoreMap[opt.character]) scoreMap[opt.character] = 0;
-        scoreMap[opt.character]++;
-      });
-      // Get max
-      let maxChar = null, maxScore = 0;
-      Object.entries(scoreMap).forEach(([char, score]) => {
-        if (score > maxScore) {
-          maxChar = char;
-          maxScore = score;
-        }
-      });
-      // Show result
-      const res = results[maxChar] || results["Rachel"];
-      document.getElementById('progress-bar').style.width = "100%";
-      document.getElementById('quiz-content').innerHTML = `
-        <div class="result">You are most like...</div>
-        <img class="avatar" src="${res.avatar}" alt="${res.name}">
-        <div class="character">${res.name}</div>
-        <div class="desc">${res.desc}</div>
-        <button class="btn" onclick="restartQuiz()">Try Again</button>
-      `;
-      document.getElementById('next-btn').style.display = 'none';
-    }
-
-    function restartQuiz() {
-      currentQuestion = 0;
-      answers = [];
-      renderQuestion();
-    }
-
-    // Initial render
-    renderQuestion();
-
-    // Expose selectOption for inline onclick
-    window.selectOption = selectOption;
-    window.restartQuiz = restartQuiz;
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Roman Sentiurev",
+    "jobTitle": "Product manager",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Almaty",
+      "addressCountry": "Kazakhstan"
+    },
+    "email": "mailbox@devroman.com",
+    "telephone": "+7-747-487-5942",
+    "url": "https://www.linkedin.com/in/devroman/",
+    "sameAs": [
+      "https://t.me/devroman"
+    ]
+  }
   </script>
 </body>
 </html>
