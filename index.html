@@ -5,7 +5,9 @@
 <title>Product Manager Runner</title>
 <style>
   body {
-    font-family: sans-serif;
+    font-family: "Courier New", monospace;
+    background: #000;
+    color: #0f0;
     text-align: center;
     margin: 0;
     padding: 0;
@@ -16,7 +18,9 @@
   #overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(0,0,0,0.95);
+    color: #0f0;
+    border: 2px solid #0f0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -28,10 +32,10 @@
     position: relative;
     flex: 1;
     width: 100%;
-    border: 1px solid #ccc;
+    border: 1px dashed #0f0;
     overflow: hidden;
     font-size: 2rem;
-    background: #f9fafb;
+    background: #111;
   }
   #player {
     position: absolute;
@@ -44,9 +48,18 @@
   }
   #info {
     display: flex;
+    color: #0f0;
     justify-content: space-between;
     font-size: 1.2rem;
     padding: 0 10px;
+  }
+  button {
+    background: #000;
+    color: #0f0;
+    border: 1px solid #0f0;
+    padding: 8px 16px;
+    font-family: inherit;
+    cursor: pointer;
   }
 </style>
 </head>
@@ -81,6 +94,10 @@ let velocity = 0;
 let jumping = false;
 let spawnRate = 0.02;
 let tick = 0;
+let stats = { attempts: 0, best: 0, total: 0 };
+let playerWidth = 0;
+let minSpawnTicks = 0;
+let lastSpawnTick = 0;
 
 function handleJump(e) {
   if (!jumping) {
@@ -89,7 +106,27 @@ function handleJump(e) {
   }
 }
 
+function resetGame() {
+  items.forEach(it => container.removeChild(it));
+  items = [];
+  score = 0;
+  lives = 3;
+  scoreDiv.textContent = 'Счёт: 0';
+  livesDiv.textContent = '❤️❤️❤️';
+  player.style.bottom = '0px';
+  playerY = 0;
+  velocity = 0;
+  jumping = false;
+  spawnRate = 0.02;
+  tick = 0;
+  playerWidth = player.getBoundingClientRect().width;
+  minSpawnTicks = Math.ceil(playerWidth * 1.5 / 4);
+  lastSpawnTick = 0;
+}
+
 function startGame() {
+  resetGame();
+  stats.attempts++;
   overlay.style.display = 'none';
   document.removeEventListener('keydown', startGame);
   document.removeEventListener('touchstart', startGame);
@@ -102,11 +139,12 @@ document.addEventListener('keydown', startGame, { once: true });
 document.addEventListener('touchstart', startGame, { once: true });
 
 function spawnItem() {
+  if (tick - lastSpawnTick < minSpawnTicks) return;
   const item = document.createElement('div');
   item.className = 'item';
   item.style.right = '-40px';
   const rand = Math.random();
-  if (rand < 0.5) {
+  if (rand < 0.3) {
     item.textContent = '💰';
     item.dataset.type = 'money';
   } else {
@@ -116,6 +154,7 @@ function spawnItem() {
   }
   container.appendChild(item);
   items.push(item);
+  lastSpawnTick = tick;
 }
 
 function gameLoop() {
@@ -168,14 +207,18 @@ function gameLoop() {
 
 function endGame() {
   clearInterval(gameInterval);
+  stats.total += score;
+  if (score > stats.best) stats.best = score;
   const grade = score < 5 ? 'Джуниор' : score < 10 ? 'Миддл' : score < 20 ? 'Сеньор' : 'CPO';
   overlay.innerHTML =
-    '<h2>Игра окончена</h2><p>Ваш счёт: ' +
-    score +
-    '</p><p>Статус: ' +
-    grade +
-    '</p><p>Обновите страницу, чтобы попробовать снова.</p>';
+    '<h2>Игра окончена</h2>' +
+    '<p>Ваш счёт: ' + score + '</p>' +
+    '<p>Статус: ' + grade + '</p>' +
+    '<p>Попыток: ' + stats.attempts + '</p>' +
+    '<p>Лучший счёт: ' + stats.best + '</p>' +
+    '<button id="restart">Попробовать ещё раз</button>';
   overlay.style.display = 'flex';
+  document.getElementById('restart').addEventListener('click', startGame, { once: true });
 }
 </script>
 </body>
