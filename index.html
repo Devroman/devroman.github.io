@@ -158,6 +158,13 @@ const issueMessages = {
 };
 let lastIssueTick = 0;
 
+const METRIKA_ID = 102159981;
+function trackGoal(name) {
+  if (typeof ym === 'function') {
+    ym(METRIKA_ID, 'reachGoal', name);
+  }
+}
+
 function chooseWeightedRandom(options) {
   const total = options.reduce((s, o) => s + o.weight, 0);
   let r = Math.random() * total;
@@ -225,6 +232,10 @@ function resetGame() {
 function startLevel() {
   resetGame();
   overlay.style.display = 'none';
+  if (currentLevel === 0) trackGoal('start_game');
+  else if (currentLevel === 1) trackGoal('get_middle');
+  else if (currentLevel === 2) trackGoal('get_senior');
+  else if (currentLevel === 3) trackGoal('get_cpo');
   document.removeEventListener('keydown', startLevel);
   document.removeEventListener('touchstart', startLevel);
   document.addEventListener('keydown', handleJump);
@@ -335,6 +346,7 @@ function completeLevel() {
       showLevelIntro();
     }, { once: true });
   } else {
+    trackGoal('complete_game');
     overlay.innerHTML =
       '<h2>Вы победили!</h2>' +
       '<p>Теперь вы очень ценитесь на рынке!</p>' +
@@ -345,6 +357,7 @@ function completeLevel() {
 }
 
 function endGame() {
+  trackGoal('lose_game');
   clearInterval(gameInterval);
   const entries = Object.entries(issueStats).sort((a, b) => b[1] - a[1]);
   const [topIssue, topCount] = entries[0];
@@ -404,6 +417,9 @@ function showDifficultySelection() {
   overlay.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
       difficulty = btn.dataset.diff;
+      if (difficulty === 'easy') trackGoal('select_easy');
+      else if (difficulty === 'normal') trackGoal('select_medium');
+      else if (difficulty === 'hard') trackGoal('select_hard');
       showInitialOverlay();
     }, { once: true });
   });
@@ -430,6 +446,9 @@ function showLevelIntro() {
     btn.addEventListener('click', () => {
       upgrades[btn.dataset.skill]++;
       chosenUpgrades.push(btn.textContent);
+      if (btn.dataset.skill === 'team') trackGoal('upgrade_team');
+      else if (btn.dataset.skill === 'gorbunov') trackGoal('upgrade_ux');
+      else if (btn.dataset.skill === 'delegation') trackGoal('upgrade_delegate');
       startLevel();
     }, { once: true });
   });
