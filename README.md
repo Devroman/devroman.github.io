@@ -1,5 +1,9 @@
-# Roman Sentiurev Resume
+# Product Manager Runner
 
-This repository contains the single-page resume website for Roman Sentiurev, a Senior Product Manager from Almaty, Kazakhstan.
+This repository contains a small browser game. Open `index.html` in a modern browser to play.
 
-Open `index.html` in a browser to view the site. The page is written in HTML5 with Tailwind CSS and includes basic SEO and Schema.org markup.
+Help Alex the Product Manager collect money and dodge tech debt, bugs and angry users. Each
+mistake costs a life. After three mistakes the game ends and your final score
+determines your grade from **Junior** to **CPO**.
+
+The game is written in plain HTML, CSS and JavaScript using emoji for all graphics.
