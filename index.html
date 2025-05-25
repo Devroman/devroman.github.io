@@ -13,10 +13,22 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      color: #1d1d1f;
+    }
+    h1, h2, h3 {
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .apple-nav {
+      backdrop-filter: saturate(180%) blur(20px);
+      background-color: rgba(255, 255, 255, 0.8);
+    }
   </style>
 </head>
-<body class="bg-white text-gray-900 font-sans antialiased leading-relaxed">
-  <header class="sticky top-0 bg-white shadow">
+<body class="bg-white antialiased leading-relaxed">
+  <header class="apple-nav sticky top-0 border-b border-gray-200">
     <nav class="container mx-auto flex justify-between items-center py-4 px-4">
       <div class="text-xl font-bold">Roman Sentiurev</div>
       <ul class="flex space-x-4">
