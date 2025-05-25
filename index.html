@@ -120,9 +120,9 @@ let spawnIncrement = 0.004;
 let spawnCap = 0.06;
 let difficulty = 'hard';
 const difficultySettings = {
-  easy: { label: 'Пощадите', spawnMod: 0.5 },
-  normal: { label: 'Нормас', spawnMod: 0.75 },
-  hard: { label: 'Хардкор', spawnMod: 1 }
+  easy: { label: 'Корпорация - всегда есть тылы', spawnMod: 0.5 },
+  normal: { label: 'Малый и средний бизнес', spawnMod: 0.75 },
+  hard: { label: 'Стартап - узнай почему гибнут 95%', spawnMod: 1 }
 };
 let tick = 0;
 let playerWidth = 0;
@@ -136,7 +136,7 @@ const levels = [
   { goal: 10000, grade: 'Junior', multiplier: 1, spawn: 0.018 },
   { goal: 100000, grade: 'Middle', multiplier: 10, spawn: 0.022 },
   { goal: 1000000, grade: 'Senior', multiplier: 100, spawn: 0.026 },
-  { goal: 100000000, grade: 'CPO', multiplier: 1000, spawn: 0.03 }
+  { goal: 10000000, grade: 'CPO', multiplier: 1500, spawn: 0.035 }
 ];
 let currentLevel = 0;
 let upgrades = { team: 0, gorbunov: 0, delegation: 0 };
@@ -398,9 +398,9 @@ function showInitialOverlay() {
 function showDifficultySelection() {
   overlay.innerHTML =
     '<h2>Выберите уровень сложности</h2>' +
-    '<div><button data-diff="easy">Пощадите</button></div>' +
-    '<div><button data-diff="normal">Нормас</button></div>' +
-    '<div><button data-diff="hard">Хардкор</button></div>';
+    '<div><button data-diff="easy">Корпорация - всегда есть тылы</button></div>' +
+    '<div><button data-diff="normal">Малый и средний бизнес</button></div>' +
+    '<div><button data-diff="hard">Стартап - узнай почему гибнут 95%</button></div>';
   overlay.style.display = 'flex';
   overlay.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', () => {
