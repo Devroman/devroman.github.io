@@ -375,7 +375,6 @@ function endGame() {
     '<p>Прокачки: ' + (chosenUpgrades.join(', ') || 'нет') + '</p>' +
     tableHtml +
     '<p>' + verdict + '</p>' +
-    '<p>Не сдавайтесь, кофе и баги ещё впереди!</p>' +
     '<button id="restart">Попробовать ещё раз</button>';
   overlay.style.display = 'flex';
   document.getElementById('restart').addEventListener('click', restartLevel, { once: true });
