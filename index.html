@@ -84,7 +84,7 @@
   <p>Алекс мечтает стать директором по продукту. Собирайте деньги 💰 и избегайте неприятностей.</p>
   <p>Цель проекта — заработать $10000.</p>
   <p><strong>Легенда предметов:</strong></p>
-  <p>💰 — деньги, 🐞 — баг, 🐛 — техдолг, ⚠️ — предупреждение, 🔥 — пожар, 😡 — недовольные пользователи</p>
+  <p>💰 — деньги, 🐞 — баг, 🐛 — техдолг, 😡 — недовольный пользователь, 📞 — череда созвонов</p>
   <p>Каждая ошибка стоит жизни ❤️. После трёх ошибок игра заканчивается.</p>
   <p><strong>Тапните экран или нажмите клавишу, чтобы начать.</strong></p>
 </div>
@@ -109,7 +109,7 @@ const messageDiv = document.getElementById('message');
 let playerY = 0;
 let velocity = 0;
 let jumping = false;
-let spawnRate = 0.02;
+let spawnRate = 0.018;
 let tick = 0;
 let playerWidth = 0;
 let minSpawnTicks = 0;
@@ -117,15 +117,14 @@ let lastSpawnTick = 0;
 let moneyEarned = 0;
 let moneyValue = 100;
 const goal = 10000;
-let itemSpeed = 4;
-const issueStats = { '🐞': 0, '🐛': 0, '🔥': 0, '😡': 0, '⚠️': 0 };
-const issueNames = { '🐞': 'Баг', '🐛': 'Техдолг', '🔥': 'Пожар', '😡': 'Недовольный пользователь', '⚠️': 'Предупреждение' };
+let itemSpeed = 3;
+const issueStats = { '🐞': 0, '🐛': 0, '😡': 0, '📞': 0 };
+const issueNames = { '🐞': 'Баг', '🐛': 'Техдолг', '😡': 'Недовольный пользователь', '📞': 'Череда созвонов' };
 const issueMessages = {
   '🐞': 'Обнаружен баг!',
   '🐛': 'Техдолг атакует!',
-  '🔥': 'Пожар в проде!',
   '😡': 'Пользователь злится!',
-  '⚠️': 'Получено предупреждение!'
+  '📞': 'Нужно провести созвон!'
 };
 let lastIssueTick = 0;
 
@@ -141,7 +140,7 @@ function resetGame() {
   items = [];
   moneyEarned = 0;
   moneyValue = 100;
-  itemSpeed = 4;
+  itemSpeed = 3;
   for (const key in issueStats) issueStats[key] = 0;
   lives = 3;
   scoreDiv.textContent = 'Доход: $0';
@@ -151,10 +150,10 @@ function resetGame() {
   playerY = 0;
   velocity = 0;
   jumping = false;
-  spawnRate = 0.02;
+  spawnRate = 0.018;
   tick = 0;
   playerWidth = player.getBoundingClientRect().width;
-  minSpawnTicks = Math.ceil(playerWidth * 1.5 / itemSpeed);
+  minSpawnTicks = Math.ceil(playerWidth * 3 / itemSpeed);
   lastSpawnTick = 0;
   lastIssueTick = 0;
 }
@@ -182,7 +181,7 @@ function spawnItem() {
     item.textContent = '💰';
     item.dataset.type = 'money';
   } else {
-    const obstacles = ['🐞','🔥','😡','🐛','⚠️'];
+    const obstacles = ['🐞','🐛','😡','📞'];
     item.textContent = obstacles[Math.floor(Math.random()*obstacles.length)];
     item.dataset.type = 'obstacle';
   }
@@ -199,11 +198,11 @@ function gameLoop() {
     lastIssueTick = tick;
   }
   if (Math.random() < spawnRate) spawnItem();
-  if (tick % 300 === 0 && spawnRate < 0.07) {
-    spawnRate += 0.005;
+  if (tick % 300 === 0 && spawnRate < 0.06) {
+    spawnRate += 0.004;
     itemSpeed += 0.5;
     moneyValue += 50;
-    minSpawnTicks = Math.ceil(playerWidth * 1.5 / itemSpeed);
+    minSpawnTicks = Math.ceil(playerWidth * 3 / itemSpeed);
   }
   // update player jump
   if (jumping) {
@@ -259,10 +258,9 @@ function endGame() {
   let verdict = '';
   const jokes = {
     '🐞': 'Баги съели вас заживо.',
-    '🐛': 'Баги-личинки выползли из-под контроля.',
-    '🔥': 'Всё пылает. Пора вызвать пожарных.',
+    '🐛': 'Техдолг поглотил ваш проект.',
     '😡': 'Пользователи устроили бунт и разнесли всё в клочья.',
-    '⚠️': 'Предупреждения превратились в критические проблемы.'
+    '📞': 'Созвоны затянулись, пока вы не выгорели.'
   };
   if (moneyEarned >= goal) {
     verdict = 'Несмотря на все препятствия вы достигли цели!';
