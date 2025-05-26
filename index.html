@@ -158,6 +158,24 @@ const issueMessages = {
 };
 let lastIssueTick = 0;
 
+let isAIActive = false;
+const ai = {
+  weights: [Math.random() * 2 - 1, Math.random() * 2 - 1],
+  predict(dist) {
+    const x = dist / container.offsetWidth;
+    const z = this.weights[0] * x + this.weights[1];
+    return 1 / (1 + Math.exp(-z));
+  },
+  learn(dist, target) {
+    const x = dist / container.offsetWidth;
+    const out = this.predict(dist);
+    const err = target - out;
+    const lr = 0.1;
+    this.weights[0] += lr * err * x;
+    this.weights[1] += lr * err;
+  }
+};
+
 const METRIKA_ID = 102159981;
 function trackGoal(name) {
   if (typeof ym === 'function') {
@@ -173,6 +191,19 @@ function chooseWeightedRandom(options) {
     if (r <= 0) return o.emoji;
   }
   return options[options.length - 1].emoji;
+}
+
+function getNextObstacleDistance() {
+  const playerRect = player.getBoundingClientRect();
+  let min = Infinity;
+  items.forEach(item => {
+    if (item.dataset.type === 'obstacle') {
+      const rect = item.getBoundingClientRect();
+      const d = rect.left - playerRect.right;
+      if (d >= 0 && d < min) min = d;
+    }
+  });
+  return isFinite(min) ? min : container.offsetWidth;
 }
 
 function getObstacleOptions() {
@@ -232,6 +263,7 @@ function resetGame() {
 function startLevel() {
   resetGame();
   overlay.style.display = 'none';
+  container.style.background = isAIActive ? '#002' : '#111';
   if (currentLevel === 0) trackGoal('start_game');
   else if (currentLevel === 1) trackGoal('get_middle');
   else if (currentLevel === 2) trackGoal('get_senior');
@@ -265,6 +297,11 @@ function spawnItem() {
 
 function gameLoop() {
   tick++;
+  if (isAIActive) {
+    const dist = getNextObstacleDistance();
+    if (ai.predict(dist) > 0.5) handleJump();
+    ai.learn(dist, dist < 120 ? 1 : 0);
+  }
   if (moneyEarned >= goal) {
     completeLevel();
     return;
@@ -333,6 +370,7 @@ function completeLevel() {
   clearInterval(gameInterval);
   document.removeEventListener('keydown', handleJump);
   container.removeEventListener('touchstart', handleJump);
+  isAIActive = false;
   if (currentLevel < levels.length - 1) {
     const nextGrade = levels[currentLevel + 1].grade;
     overlay.innerHTML =
@@ -359,6 +397,10 @@ function completeLevel() {
 function endGame() {
   trackGoal('lose_game');
   clearInterval(gameInterval);
+  if (isAIActive) {
+    setTimeout(startLevel, 50);
+    return;
+  }
   const entries = Object.entries(issueStats).sort((a, b) => b[1] - a[1]);
   const [topIssue, topCount] = entries[0];
   let verdict = '';
@@ -434,15 +476,17 @@ function startPreparation() {
 function showLevelIntro() {
   resetGame();
   const lvl = levels[currentLevel];
+  isAIActive = false;
   overlay.innerHTML =
     `<h2>${lvl.grade} — цель $${lvl.goal}</h2>` +
     '<p>Выберите навык для прокачки:</p>' +
     '<div><p>Багов будет меньше</p><button class="skill-btn" data-skill="team">Прокачать команду</button></div>' +
     '<div><p>Попадание в ожидание пользователя лучше</p><button class="skill-btn" data-skill="gorbunov">Курсы Горбунова</button></div>' +
     '<div><p>Созвонов станет меньше</p><button class="skill-btn" data-skill="delegation">Делегирование</button></div>' +
+    '<div><p>Автопрохождение уровня</p><button class="skill-btn" id="ai-mode">Режим AI</button></div>' +
     (currentLevel >= 2 ? '<p>Теперь вы умеете делать двойной прыжок!</p>' : '');
   overlay.style.display = 'flex';
-  overlay.querySelectorAll('button').forEach(btn => {
+  overlay.querySelectorAll('[data-skill]').forEach(btn => {
     btn.addEventListener('click', () => {
       upgrades[btn.dataset.skill]++;
       chosenUpgrades.push(btn.textContent);
@@ -452,6 +496,11 @@ function showLevelIntro() {
       startLevel();
     }, { once: true });
   });
+  const aiBtn = document.getElementById('ai-mode');
+  if (aiBtn) aiBtn.addEventListener('click', () => {
+    isAIActive = true;
+    startLevel();
+  }, { once: true });
 }
 
 function restartAll() {
