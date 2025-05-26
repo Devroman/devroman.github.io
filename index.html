@@ -119,6 +119,7 @@ let velocity = 0;
 let jumping = false;
 let jumpCount = 0;
 let maxJumps = 1;
+const AIR_TICKS = Math.round((12 * 2) / 0.6); // approximate time spent in air
 let spawnRate = 0.018;
 let spawnIncrement = 0.004;
 let spawnCap = 0.06;
@@ -167,20 +168,40 @@ let isAIActive = false;
 function updatePlayerEmoji() {
   player.textContent = isAIActive ? '🤖' : '🧑\u200d💼';
 }
+
+function getNextTwoObstacleDistances() {
+  const playerRect = player.getBoundingClientRect();
+  const dists = [];
+  items.forEach(item => {
+    if (item.dataset.type === 'obstacle') {
+      const rect = item.getBoundingClientRect();
+      const d = rect.left - playerRect.right;
+      if (d >= 0) dists.push(d);
+    }
+  });
+  dists.sort((a, b) => a - b);
+  const d1 = dists.length > 0 ? dists[0] : container.offsetWidth;
+  const d2 = dists.length > 1 ? dists[1] : container.offsetWidth * 2;
+  return [d1, d2];
+}
+
 const ai = {
-  weights: [Math.random() * 2 - 1, Math.random() * 2 - 1],
-  predict(dist) {
-    const x = dist / container.offsetWidth;
-    const z = this.weights[0] * x + this.weights[1];
+  weights: [Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1],
+  predict(d1, d2) {
+    const x1 = d1 / container.offsetWidth;
+    const x2 = d2 / container.offsetWidth;
+    const z = this.weights[0] * x1 + this.weights[1] * x2 + this.weights[2];
     return 1 / (1 + Math.exp(-z));
   },
-  learn(dist, target) {
-    const x = dist / container.offsetWidth;
-    const out = this.predict(dist);
+  learn(d1, d2, target) {
+    const x1 = d1 / container.offsetWidth;
+    const x2 = d2 / container.offsetWidth;
+    const out = this.predict(d1, d2);
     const err = target - out;
     const lr = 0.1;
-    this.weights[0] += lr * err * x;
-    this.weights[1] += lr * err;
+    this.weights[0] += lr * err * x1;
+    this.weights[1] += lr * err * x2;
+    this.weights[2] += lr * err;
   }
 };
 
@@ -199,19 +220,6 @@ function chooseWeightedRandom(options) {
     if (r <= 0) return o.emoji;
   }
   return options[options.length - 1].emoji;
-}
-
-function getNextObstacleDistance() {
-  const playerRect = player.getBoundingClientRect();
-  let min = Infinity;
-  items.forEach(item => {
-    if (item.dataset.type === 'obstacle') {
-      const rect = item.getBoundingClientRect();
-      const d = rect.left - playerRect.right;
-      if (d >= 0 && d < min) min = d;
-    }
-  });
-  return isFinite(min) ? min : container.offsetWidth;
 }
 
 function getObstacleOptions() {
@@ -307,9 +315,15 @@ function spawnItem() {
 function gameLoop() {
   tick++;
   if (isAIActive) {
-    const dist = getNextObstacleDistance();
-    if (ai.predict(dist) > 0.5) handleJump();
-    ai.learn(dist, dist < 120 ? 1 : 0);
+    const [d1, d2] = getNextTwoObstacleDistances();
+    if (!jumping && ai.predict(d1, d2) > 0.5) {
+      handleJump();
+    } else if (jumping && jumpCount < maxJumps) {
+      const jumpDist = itemSpeed * AIR_TICKS;
+      if (d2 < jumpDist) handleJump();
+    }
+    const shouldJump = d1 < 120 || (d2 - d1 < 80 && d1 < 160);
+    ai.learn(d1, d2, shouldJump ? 1 : 0);
   }
   if (moneyEarned >= goal) {
     completeLevel();
