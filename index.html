@@ -73,6 +73,10 @@
   .skill-btn {
     margin: 6px 0;
   }
+  #ai-mode {
+    color: #00f;
+    border-color: #00f;
+  }
 
   @media (max-width: 600px) {
     #game-container { font-size: 3rem; }
@@ -159,6 +163,10 @@ const issueMessages = {
 let lastIssueTick = 0;
 
 let isAIActive = false;
+
+function updatePlayerEmoji() {
+  player.textContent = isAIActive ? '🤖' : '🧑\u200d💼';
+}
 const ai = {
   weights: [Math.random() * 2 - 1, Math.random() * 2 - 1],
   predict(dist) {
@@ -264,6 +272,7 @@ function startLevel() {
   resetGame();
   overlay.style.display = 'none';
   container.style.background = isAIActive ? '#002' : '#111';
+  updatePlayerEmoji();
   if (currentLevel === 0) trackGoal('start_game');
   else if (currentLevel === 1) trackGoal('get_middle');
   else if (currentLevel === 2) trackGoal('get_senior');
@@ -371,6 +380,7 @@ function completeLevel() {
   document.removeEventListener('keydown', handleJump);
   container.removeEventListener('touchstart', handleJump);
   isAIActive = false;
+  updatePlayerEmoji();
   if (currentLevel < levels.length - 1) {
     const nextGrade = levels[currentLevel + 1].grade;
     overlay.innerHTML =
@@ -477,13 +487,14 @@ function showLevelIntro() {
   resetGame();
   const lvl = levels[currentLevel];
   isAIActive = false;
+  updatePlayerEmoji();
   overlay.innerHTML =
     `<h2>${lvl.grade} — цель $${lvl.goal}</h2>` +
     '<p>Выберите навык для прокачки:</p>' +
     '<div><p>Багов будет меньше</p><button class="skill-btn" data-skill="team">Прокачать команду</button></div>' +
     '<div><p>Попадание в ожидание пользователя лучше</p><button class="skill-btn" data-skill="gorbunov">Курсы Горбунова</button></div>' +
     '<div><p>Созвонов станет меньше</p><button class="skill-btn" data-skill="delegation">Делегирование</button></div>' +
-    '<div><p>Автопрохождение уровня</p><button class="skill-btn" id="ai-mode">Режим AI</button></div>' +
+    '<div><p>Автопрохождение уровня</p><button class="skill-btn" id="ai-mode">Мы же в 2К25, время использовать AI агентов!</button></div>' +
     (currentLevel >= 2 ? '<p>Теперь вы умеете делать двойной прыжок!</p>' : '');
   overlay.style.display = 'flex';
   overlay.querySelectorAll('[data-skill]').forEach(btn => {
@@ -499,6 +510,7 @@ function showLevelIntro() {
   const aiBtn = document.getElementById('ai-mode');
   if (aiBtn) aiBtn.addEventListener('click', () => {
     isAIActive = true;
+    trackGoal('activate_ai');
     startLevel();
   }, { once: true });
 }
