@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ATI.SU Delivery Dash 3D</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <style>
+    *,*:before,*:after{box-sizing:border-box;margin:0;padding:0}
+    body{background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:100vh;overflow:hidden}
+    h1{margin-top:8px;color:#004c99}
+    #ui{position:absolute;top:8px;width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2;pointer-events:none}
+    #instruction,#score{pointer-events:auto;background:#ffffffd0;padding:4px 8px;border-radius:6px}
+    #instruction{color:#004c99}
+    #score{color:#006633}
+    #startBtn{pointer-events:auto;padding:8px 20px;font-size:1rem;border:none;border-radius:8px;background:#ff7f32;color:#fff;cursor:pointer}
+    #startBtn:disabled{opacity:.5;cursor:not-allowed}
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <h1>ATI.SU Delivery Dash 3D</h1>
+    <span id="instruction">Найдите груз: управляйте ← ↑ → ↓</span>
+    <button id="startBtn">Старт</button>
+    <span id="score"></span>
+  </div>
+
+<script>
+// ------------ UI refs ------------
+const startBtn   = document.getElementById('startBtn');
+const instruction= document.getElementById('instruction');
+const scoreLbl   = document.getElementById('score');
+
+// ------------ Three.js basics ------------
+let scene, camera, renderer;
+let player;                     // player mesh (truck)
+let cargos   = [];              // array of cargo boxes
+let obstacles= [];              // array of trucks / cars
+let keys     = {};
+const STATE  = { SEARCH:0, DRIVE:1, END:2 };
+let state;
+
+// gameplay vars
+let distance   = 0;             // metres travelled
+const baseSpeed= 0.6;           // constant forward speed units/frame
+let speed      = baseSpeed;     // dynamic (increases with distance)
+let frame      = 0;
+const roadLength = 3000;        // win condition (m)
+let score      = 0;             // cargo points
+
+// road params
+const laneCount = 3;
+const laneWidth = 4;
+
+// control flag to avoid multiple loops
+let gameRunning = false;
+
+// ------------ Init 3‑D scene ------------
+function init3D(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xe0f0ff);
+
+  camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 4000);
+  camera.position.set(0,6,10);
+  camera.lookAt(0,0,0);
+
+  scene.add(new THREE.HemisphereLight(0xffffff,0x444444,1.2));
+  const dl = new THREE.DirectionalLight(0xffffff,0.9);
+  dl.position.set(5,12,8);
+  scene.add(dl);
+
+  renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+  window.addEventListener('resize', ()=>{
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  // --- road ---
+  const roadGeo = new THREE.PlaneGeometry(laneCount*laneWidth, 8000);
+  const roadMat = new THREE.MeshStandardMaterial({color:0x222222, side:THREE.DoubleSide});
+  const road    = new THREE.Mesh(roadGeo, roadMat);
+  road.rotation.x = -Math.PI/2;
+  road.position.z = -4000;
+  scene.add(road);
+
+  // lane divider lines (yellow dashed)
+  const lineMat = new THREE.LineDashedMaterial({color:0xffd700, dashSize:2, gapSize:1});
+  for(let i=1;i<laneCount;i++){
+    const pts = [
+      new THREE.Vector3(-laneCount*laneWidth/2 + i*laneWidth, 0.05, 100),
+      new THREE.Vector3(-laneCount*laneWidth/2 + i*laneWidth, 0.05, -8100)
+    ];
+    const geo  = new THREE.BufferGeometry().setFromPoints(pts);
+    const line = new THREE.Line(geo, lineMat);
+    line.computeLineDistances();
+    scene.add(line);
+  }
+}
+
+// ------------ Low‑poly vehicle helpers ------------
+function createLowPolyTruck(colorCab, colorTrailer){
+  const g = new THREE.Group();
+  const trailer = new THREE.Mesh(new THREE.BoxGeometry(2.4,1.2,2.2), new THREE.MeshStandardMaterial({color:colorTrailer}));
+  trailer.position.set(0,0.6,-0.9);
+  g.add(trailer);
+  const cab = new THREE.Mesh(new THREE.BoxGeometry(2.4,1.4,1.6), new THREE.MeshStandardMaterial({color:colorCab}));
+  cab.position.set(0,0.7,1.0);
+  g.add(cab);
+  return g;
+}
+
+function createLowPolyCar(color){
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.0,0.8,3.0), new THREE.MeshStandardMaterial({color}));
+  body.position.y = 0.4;
+  g.add(body);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(1.4,0.6,1.6), new THREE.MeshStandardMaterial({color:0xffffff}));
+  roof.position.set(0,0.9,0);
+  g.add(roof);
+  return g;
+}
+
+function createCargoBox(){
+  return new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2), new THREE.MeshStandardMaterial({color:0xff7f32}));
+}
+
+function spawnPlayer(){
+  player = createLowPolyTruck(0x009944,0x006633);
+  scene.add(player);
+  player.position.set(0,0,0);
+}
+
+const randLane = () => Math.floor(Math.random()*laneCount);
+
+function spawnCargo(ahead=true){
+  const cargo = createCargoBox();
+  scene.add(cargo);
+  const lane = randLane();
+  const offsetZ = ahead ? -60-Math.random()*40 : -120-Math.random()*60; // spawn ahead of truck
+  cargo.position.set((lane-(laneCount-1)/2)*laneWidth, 0.6, player.position.z + offsetZ);
+  cargos.push(cargo);
+}
+
+function spawnObstacle(){
+  const lane = randLane();
+  let vehicle;
+  if(Math.random()<0.5){
+    const blues=[0x0084ff,0x0074d9,0x2299ff];
+    const col=blues[Math.floor(Math.random()*blues.length)];
+    vehicle=createLowPolyTruck(col,col);
+  } else {
+    const whites=[0xffffff,0xdddddd];
+    vehicle=createLowPolyCar(whites[Math.floor(Math.random()*whites.length)]);
+  }
+  vehicle.position.set((lane-(laneCount-1)/2)*laneWidth, 0, player.position.z - 180);
+  scene.add(vehicle);
+  obstacles.push(vehicle);
+}
+
+const intersects = (a,b,rad) => {
+  const dx=a.position.x-b.position.x, dz=a.position.z-b.position.z;
+  return Math.hypot(dx,dz) < rad;
+};
+
+// ------------ Game loop ------------
+function loop(){
+  if(!renderer) return; // safeguard
+  requestAnimationFrame(loop);
+
+  if(state===STATE.SEARCH || state===STATE.DRIVE) updatePlayer();
+
+  if(state===STATE.DRIVE){
+    frame++;
+    if(frame%45===0) spawnObstacle();
+    if(frame%90===0) spawnCargo(false); // periodic cargo along path
+
+    speed = baseSpeed + distance/700*0.05;
+    player.position.z -= speed;
+    distance = -player.position.z;
+    updateHUD();
+
+    // obstacle cleanup
+    obstacles.forEach(o=>{ if(o.position.z - player.position.z > 20){ scene.remove(o); } });
+    obstacles = obstacles.filter(o=> o.parent);
+
+    if(obstacles.some(o=> intersects(player,o,1.6))) end(false);
+    if(distance >= roadLength) end(true);
+  }
+
+  renderer.render(scene, camera);
+}
+
+function updateHUD(){
+  scoreLbl.textContent = `Дистанция: ${Math.floor(distance)} м / ${roadLength} | Очки: ${score}`;
+}
+
+// ------------ Player & Camera update ------------
+function updatePlayer(){
+  const lateral = 0.18;
+  if(keys['ArrowLeft'])  player.position.x -= lateral;
+  if(keys['ArrowRight']) player.position.x += lateral;
+
+  if(state===STATE.SEARCH){
+    if(keys['ArrowUp'])   player.position.z -= lateral*4;
+    if(keys['ArrowDown']) player.position.z += lateral*4;
+  }
+
+  const half = laneCount*laneWidth/2 - 1;
+  player.position.x = THREE.MathUtils.clamp(player.position.x, -half, half);
+
+  // camera follow
+  camera.position.x = player.position.x * 0.7;
+  camera.position.z = player.position.z + 10;
+  camera.lookAt(player.position.x, 0, player.position.z - 20);
+
+  // cargo pickup / cleanup
+  for(let i=cargos.length-1; i>=0; i--){
+    const c = cargos[i];
+    if(intersects(player,c,1.5)){
+      scene.remove(c);
+      cargos.splice(i,1);
+      if(state===STATE.SEARCH){
+        state = STATE.DRIVE;
+        instruction.textContent='Доставьте груз: избегайте столкновений!';
+      }
+      score += 10;
+      updateHUD();
+    } else if(player.position.z - c.position.z < -20){
+      scene.remove(c);
+      cargos.splice(i,1);
+    }
+  }
+}
+
+// ------------ Game control ------------
+function reset(){
+  obstacles.forEach(o=> scene.remove(o)); obstacles = [];
+  cargos.forEach(c=> scene.remove(c)); cargos = [];
+
+  distance = 0; frame = 0; speed = baseSpeed; score = 0;
+
+  spawnPlayer();
+  spawnCargo(); // first cargo to start game
+
+  state = STATE.SEARCH;
+  instruction.textContent = 'Найдите груз: управляйте ← ↑ → ↓';
+  updateHUD();
+}
+
+function end(win){
+  state = STATE.END;
+  instruction.textContent = win ? `Успех! Очки: ${score}. Сыграем ещё?` : 'Авария! Попробуйте снова.';
+  startBtn.disabled = false;
+  gameRunning = false;
+}
+
+function startGame(){
+  if(!scene) init3D();
+  reset();
+  if(!gameRunning){
+    gameRunning = true;
+    loop();
+  }
+  startBtn.disabled = true;
+}
+
+// ------------ Events ------------
+document.addEventListener('keydown', e=> keys[e.key]=true);
+document.addEventListener('keyup',   e=> keys[e.key]=false);
+startBtn.addEventListener('click', startGame);
+</script>
+</body>
+</html>
