@@ -39,6 +39,7 @@
     overflow: hidden;
     font-size: 2rem;
     background: #111;
+    transition: background-color 0.25s;
   }
   #player {
     position: absolute;
@@ -78,6 +79,25 @@
     border-color: #00f;
   }
 
+  #wow {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 4rem;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    color: gold;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .wow-show {
+    animation: wowBlink 0.25s ease forwards;
+  }
+  @keyframes wowBlink {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
   @media (max-width: 600px) {
     #game-container { font-size: 3rem; }
     #info { font-size: 1.6rem; }
@@ -104,6 +124,7 @@
   <div id="score">Доход: $0</div>
 </div>
 <div id="message"></div>
+<div id="wow">Wow!</div>
 <script>
 let gameInterval;
 let items = [];
@@ -114,6 +135,7 @@ const overlay = document.getElementById('overlay');
 const scoreDiv = document.getElementById('score');
 const livesDiv = document.getElementById('lives');
 const messageDiv = document.getElementById('message');
+const wowDiv = document.getElementById('wow');
 let playerY = 0;
 let velocity = 0;
 let jumping = false;
@@ -292,6 +314,20 @@ function startLevel() {
   gameInterval = setInterval(gameLoop, 20);
 }
 
+function flashDamage() {
+  const original = container.style.backgroundColor || container.style.background;
+  container.style.backgroundColor = '#400';
+  setTimeout(() => {
+    container.style.backgroundColor = original;
+  }, 250);
+}
+
+function showWow() {
+  wowDiv.classList.remove('wow-show');
+  void wowDiv.offsetWidth;
+  wowDiv.classList.add('wow-show');
+}
+
 
 function spawnItem() {
   if (tick - lastSpawnTick < minSpawnTicks) return;
@@ -368,8 +404,10 @@ function gameLoop() {
       if (item.dataset.type === 'money') {
         moneyEarned += moneyValue;
         scoreDiv.textContent = 'Доход: $' + moneyEarned;
+        showWow();
       } else if (item.dataset.type === 'obstacle') {
         lives--;
+        flashDamage();
         if (issueStats.hasOwnProperty(item.textContent)) {
           issueStats[item.textContent]++;
         }
